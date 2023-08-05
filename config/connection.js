@@ -9,3 +9,5 @@ const db = mysql.createConnection(
     },
     console.log('Connected to the database.')
 );
+
+module.exports = db;

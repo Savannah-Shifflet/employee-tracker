@@ -83,35 +83,20 @@ const addEmployee = (first_name, last_name, role, manager) => {
 
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
-const updateRole = (employeeName, newRole) => {
-    let employeeId = 0;
-    let roleId = 0; 
-    let employeeNameArray = employeeName.split(' '); 
-    db.promise().query({sql: 'SELECT id FROM employee WHERE first_name = ? AND last_name = ?', rowsAsArray: true}, [employeeNameArray[0], employeeNameArray[1]])
-    .then((rows, fields) => {
-        employeeId = rows[0];
-    })
-    .then(() => {
-        db.promise().query({sql: 'SELECT id FROM role WHERE title = ?', rowsAsArray: true}, newRole)
-        .then(([rows, field]) => {
-            roleId = rows[0];
-        }) 
-        .then(() => {
-            db.query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId], (err, results) => { 
-                if(err) {
-                    console.log(err);
-                } else {
-                    console.log(`Role was successfully updated!`);
-                    return mainMenu();
-                };
-            });
-        });
-        
+const updateRole = (employee, newRole) => {
+    db.query('UPDATE employee SET role_id = ? WHERE id = ?', [newRole, employee], (err, results) => { 
+        if(err) {
+            console.log(err);
+        } else {
+            console.log(`Role was successfully updated!`);
+            return mainMenu();
+        };
     });
-
 };
 
 const choice = (str) => {
+    let managerList;
+    let roleList;
     switch(str) {
         case 'View all departments':
             return viewAllDepartments();
@@ -165,8 +150,6 @@ const choice = (str) => {
             });
             break;
         case 'Add an employee':
-            let managerList;
-            let roleList;
             db.promise().query('SELECT * FROM employee')
             .then((rows, fields) => {
                 managerList = rows[0].map((manager) => ({
@@ -215,36 +198,42 @@ const choice = (str) => {
             }); 
             break;
         case 'Update an employee role':
-            let nameArray;
-            let roleTitleArray;
-            db.promise().query('SELECT CONCAT(first_name, \' \', last_name) AS name FROM employee')
+            db.promise().query('SELECT * FROM employee')
             .then((rows, fields) => {
-                nameArray = rows[0];
-                db.promise().query('SELECT title AS name FROM role')
+                managerList = rows[0].map((manager) => ({
+                    name: `${manager.first_name} ${manager.last_name}`,
+                    value: `${manager.id}`
+                }));
+            })
+            .then(() => {
+                db.promise().query('SELECT * FROM role')
                 .then((rows, fields) => {
-                    roleTitleArray = rows[0];
+                    roleList = rows[0].map((role) => ({
+                        name: `${role.title}`,
+                        value: `${role.id}`
+                    }));
                 })
-                .then(() => {
+                .then(() => {    
                     inquirer
                         .prompt([
                             {
                                 type: 'list',
                                 message: 'What employee do you want to update?',
                                 name: 'employee',
-                                choices: nameArray
+                                choices: managerList
                             },
                             {
                                 type: 'list',
                                 message: 'Choose the new role for the employee:',
-                                name: 'roleTitle',
-                                choices: roleTitleArray
+                                name: 'role',
+                                choices: roleList
                             },
                         ])
                         .then((answer) => {
-                            return updateRole(answer.employee, answer.roleTitle);
+                            return updateRole(answer.employee, answer.role);
                         });
-                });
-            }); 
+                    });
+            });
     }
 };
 

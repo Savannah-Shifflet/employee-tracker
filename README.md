@@ -19,16 +19,16 @@ This is a Node.js and MySQL content management system that allows the user to in
 ![Technologies](https://img.shields.io/badge/-MySQL-4479A1?logo=MySQL&logoColor=white)
 
 Technologies used for this application include: 
--Node.js
--npm
--MySQL
--Javascript
--Node packages:
-  -MySQL2
-  -Inquirer
-  -dotenv
-  -Chalk
-  -console.table
+- Node.js
+- npm
+- MySQL
+- Javascript
+- Node packages:
+  - MySQL2
+  - Inquirer
+  - dotenv
+  - Chalk
+  - console.table
 
 ## Installation
 

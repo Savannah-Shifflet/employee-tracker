@@ -1,21 +1,42 @@
 const db = require('../config/connection');
+const cTable = require('console.table');
 
 // THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
 
 // WHEN I choose to view all departments
 
 const viewAllDepartments = () => {
-    db.query('SELECT * FROM department', (err, results) => { 
+    db.query('SELECT id AS Department_id, name AS Department_Name FROM department', (err, results) => { 
         if(err) {
             console.log(err);
         }
-        console.log(results); 
+        console.table(results); 
     })
 }; 
+
+viewAllDepartments();
 // THEN I am presented with a formatted table showing department names and department ids
 // WHEN I choose to view all roles
+const viewAllRoles = () => {
+    db.query('SELECT role.title AS Job_Title, role.id AS Role_id, department.name AS Department_Name, role.salary AS Salary FROM role JOIN department ON department.id = role.department_id', (err, results) => { 
+        if(err) {
+            console.log(err);
+        }
+        console.table(results);
+    });
+};
+viewAllRoles();
 // THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 // WHEN I choose to view all employees
+const viewAllEmployees = () => {
+    db.query('SELECT employee.id AS Employee_id, employee.first_name AS First_Name, FROM employee JOIN role ON role.id = employee.role_id JOIN department ON department.id = role.department_id', (err, results) => { 
+        if(err) {
+            console.log(err);
+        }
+        console.table(results);
+    });
+};
+viewAllEmployees();
 // THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
 // WHEN I choose to add a department
 // THEN I am prompted to enter the name of the department and that department is added to the database

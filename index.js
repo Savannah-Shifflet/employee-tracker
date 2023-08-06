@@ -1,6 +1,9 @@
-const { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice } = require('./db/index');
+const { mainMenu } = require('./db/index');
+const chalk = require('chalk');
 
 const init = () => {
+    console.log(chalk.bold.bgMagenta('\n    Employee Tracker     '));
+    console.log('========================= \n');
     mainMenu();
 };
 

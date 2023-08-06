@@ -261,4 +261,4 @@ const choice = (str) => {
     }
 };
 
-module.exports = { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice };
+module.exports = { mainMenu };

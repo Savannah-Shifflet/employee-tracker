@@ -76,26 +76,10 @@ const addRole = async (title, salary, department) => {
 // WHEN I choose to add an employee
 // THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 const addEmployee = (first_name, last_name, role, manager) => {
-    let roleId = 0;
-    let managerId = 0;
-    // find role_id based on role user entered
-    db.promise().query({sql: 'SELECT id FROM role WHERE title = ?', rowsAsArray: true}, role)
-    .then(([rows, field]) => {
-        roleId = rows;
-        // Find manager_id based on name user entered
-        const managerName = manager.split(' '); 
-        db.promise().query({sql: 'SELECT id FROM employee WHERE first_name = ? AND last_name = ?', rowsAsArray: true}, [managerName[0], managerName[1]])
-        .then(([rows, field]) => {
-            managerId = rows; 
-        })
-        .then(() => {
-            // Create employee using role_id and manager_id found above
-            db.promise().query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [first_name, last_name, roleId, managerId])
-            .then(() => console.log(`${first_name} ${last_name} was successfully added to employees!`))
-            .then(() => mainMenu());
-        });
-    });
-}; 
+    db.promise().query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [first_name, last_name, role, manager])
+    .then(() => console.log(`${first_name} ${last_name} was successfully added to employees!`))
+    .then(() => mainMenu());
+};
 
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
@@ -181,14 +165,22 @@ const choice = (str) => {
             });
             break;
         case 'Add an employee':
-            let managerArray;
-            let roleArray;
-            db.promise().query('SELECT CONCAT(first_name, \' \', last_name) AS name FROM employee')
+            let managerList;
+            let roleList;
+            db.promise().query('SELECT * FROM employee')
             .then((rows, fields) => {
-                managerArray = rows[0];
-                db.promise().query('SELECT title AS name FROM role')
+                managerList = rows[0].map((manager) => ({
+                    name: `${manager.first_name} ${manager.last_name}`,
+                    value: `${manager.id}`
+                }));
+            })
+            .then(() => {
+                db.promise().query('SELECT * FROM role')
                 .then((rows, fields) => {
-                    roleArray = rows[0];
+                    roleList = rows[0].map((role) => ({
+                        name: `${role.title}`,
+                        value: `${role.id}`
+                    }));
                 })
                 .then(() => {
                     inquirer
@@ -206,21 +198,22 @@ const choice = (str) => {
                             {
                                 type: 'list',
                                 message: 'Choose the role for the new employee:',
-                                name: 'roleTitle',
-                                choices: roleArray
+                                name: 'role',
+                                choices: roleList
                             },
                             {
                                 type: 'list',
                                 message: 'Choose the manager for the new employee:',
-                                name: 'managerName',
-                                choices: managerArray
+                                name: 'manager',
+                                choices: managerList
                             }
                         ])
                         .then((answer) => {
-                            return addEmployee(answer.firstName, answer.lastName, answer.roleTitle, answer.managerName);
+                            return addEmployee(answer.firstName, answer.lastName, answer.role, answer.manager);
                         });
-                });
+                })
             }); 
+            break;
         case 'Update an employee role':
             let nameArray;
             let roleTitleArray;

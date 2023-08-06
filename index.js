@@ -1,2 +1,7 @@
-// what would you like to do?
-// THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
+const { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice } = require('./db/index');
+
+const init = () => {
+    mainMenu();
+};
+
+init();

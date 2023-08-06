@@ -1,15 +1,95 @@
 const db = require('../config/connection');
 const cTable = require('console.table');
+const inquirer = require('inquirer');
 
+const mainMenu = () => {
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                message: 'What would you like to do?',
+                name: 'userAnswer',
+                choices: [
+                    'View all departments',
+                    'View all roles', 
+                    'View all employees', 
+                    'Add a department', 
+                    'Add a role', 
+                    'Add an employee', 
+                    'Update an employee role'
+                ]
+            }
+        ])
+        .then((answer) => {
+            choice(answer.userAnswer); 
+        })
+};
+
+const choice = (str) => {
+    switch(str) {
+        case 'View all departments':
+            return viewAllDepartments();
+        case 'View all roles': 
+            viewAllRoles();
+            return mainMenu();
+        case 'View all employees':
+            viewAllEmployees();
+            return mainMenu();
+        case 'Add a department':
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        message: 'Enter the name of the department you would like to add:',
+                        name: 'departmentName'
+                    }
+                ])
+                .then((answer) => {
+                    addDepartment(answer.departmentName);
+                    return mainMenu();
+                });
+        case 'Add a role': 
+            db.query('SELECT name FROM department', (err, results) => { 
+                if(err) {
+                    console.log(err);
+                }
+                const departmentArray = results; 
+                inquirer
+                    .prompt([
+                        {
+                            type: 'input',
+                            message: 'Enter the role you would like to add:',
+                            name: 'title'
+                        },
+                        {
+                            type: 'input',
+                            message: 'Enter the salary of this role:',
+                            name: 'salary'
+                        },
+                        {
+                            type: 'list',
+                            message: 'Select what department this role belongs to:',
+                            name: 'department',
+                            choices: departmentArray
+                        }
+                    ])
+                    .then((answer) => {
+                        addRole(answer.title, answer.salary, answer.department);
+                        return mainMenu();
+                    });
+            })
+        // case 'Add an employee':
+        // case 'Update an employee role':
+    };
+};
 // WHEN I choose to view all departments
 // THEN I am presented with a formatted table showing department names and department ids
 const viewAllDepartments = () => {
-    db.query('SELECT id AS Department_id, name AS Department_Name FROM department', (err, results) => { 
-        if(err) {
-            console.log(err);
-        }
-        console.table(results); 
+    db.promise().query('SELECT id AS Department_id, name AS Department_Name FROM department')
+    .then((rows, fields) => { 
+        console.table(rows[0]); 
     })
+    .then(() => mainMenu());
 }; 
 
 // viewAllDepartments();
@@ -36,7 +116,7 @@ const viewAllEmployees = () => {
         console.table(results);
     });
 };
-viewAllEmployees();
+// viewAllEmployees();
 
 // WHEN I choose to add a department
 // THEN I am prompted to enter the name of the department and that department is added to the database
@@ -108,4 +188,4 @@ const updateRole = (employeeName, newRole) => {
     });
 };
 
-module.exports = { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole };
+module.exports = { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice };

@@ -24,7 +24,16 @@ const mainMenu = () => {
             choice(answer.userAnswer); 
         })
 };
-
+// const roleList = async () => {
+//     db.query('SELECT title FROM role', (err, results) => {
+//         if(err){
+//             console.log(err);
+//         } else {
+//             console.log(results);
+//             return results;
+//         }
+//     })
+// };
 // WHEN I choose to view all departments
 // THEN I am presented with a formatted table showing department names and department ids
 const viewAllDepartments = () => {
@@ -83,7 +92,7 @@ const addRole = async (title, salary, department) => {
 // addRole('Manager', '160000', 'Sales');
 // WHEN I choose to add an employee
 // THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-const addEmployee = async (first_name, last_name, role, manager) => {
+const addEmployee = (first_name, last_name, role, manager) => {
     let roleId = 0;
     let managerId = 0;
     // find role_id based on role user entered
@@ -166,9 +175,53 @@ const choice = (str) => {
                         return addRole(answer.title, answer.salary, answer.department);
                     });
             })
-        // case 'Add an employee':
-        // case 'Update an employee role':
-    };
+        case 'Add an employee':
+            // first_name, last_name, role, manager
+            let managerArray;
+            let roleArray;
+            db.promise().query('SELECT CONCAT(first_name, \' \', last_name) AS name FROM employee')
+            .then((rows, fields) => {
+                managerArray = rows[0];
+                // console.log(managerArray);
+                db.promise().query('SELECT title AS name FROM role')
+                .then((rows, fields) => {
+                    roleArray = rows[0];
+                })
+                .then(() => {
+                    inquirer
+                        .prompt([
+                            {
+                                type: 'input',
+                                message: 'What is the new employee\'s first name?',
+                                name: 'firstName'
+                            },
+                            {
+                                type: 'input',
+                                message: 'What is the new employee\'s last name?',
+                                name: 'lastName'
+                            },
+                            {
+                                type: 'list',
+                                message: 'Choose the role for the new employee:',
+                                name: 'roleTitle',
+                                choices: roleArray
+                            },
+                            {
+                                type: 'list',
+                                message: 'Choose the manager for the new employee:',
+                                name: 'managerName',
+                                choices: managerArray
+                            }
+                        ])
+                        .then((answer) => {
+                            return addEmployee(answer.firstName, answer.lastName, answer.roleTitle, answer.managerName);
+                        });
+                });
+            }); 
+        case 'Update an employee role':
+    }
 };
+
+mainMenu();
 
 module.exports = { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice };

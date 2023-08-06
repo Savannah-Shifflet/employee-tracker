@@ -44,7 +44,6 @@ const viewAllRoles = () => {
     })
     .then(() => mainMenu());
 };
-// viewAllRoles();
 
 // WHEN I choose to view all employees
 // THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
@@ -55,7 +54,6 @@ const viewAllEmployees = () => {
     })
     .then(() => mainMenu());
 };
-// viewAllEmployees();
 
 // WHEN I choose to add a department
 // THEN I am prompted to enter the name of the department and that department is added to the database
@@ -67,20 +65,14 @@ const addDepartment = (name) => {
     .then(() => mainMenu());
 }
 
-// addDepartment('Service');
-
 // WHEN I choose to add a role
 // THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 const addRole = async (title, salary, department) => {
-    db.promise().query({sql: 'SELECT id FROM department WHERE name = ?', rowsAsArray: true}, department)
-    .then(([rows, field]) => {
-        db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [title, salary, rows])
-        .then(() => console.log(`${title} was successfully added to roles!`))
-        .then(() => mainMenu());
-    });
+    db.promise().query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', [title, salary, department])
+    .then(() => console.log(`${title} was successfully added to roles!`))
+    .then(() => mainMenu());
 };
 
-// addRole('Manager', '160000', 'Sales');
 // WHEN I choose to add an employee
 // THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 const addEmployee = (first_name, last_name, role, manager) => {
@@ -156,42 +148,44 @@ const choice = (str) => {
                     return addDepartment(answer.departmentName);
                 });
         case 'Add a role': 
-            db.query('SELECT name FROM department', (err, results) => { 
-                if(err) {
-                    console.log(err);
-                }
-                const departmentArray = results; 
-                inquirer
-                    .prompt([
-                        {
-                            type: 'input',
-                            message: 'Enter the role you would like to add:',
-                            name: 'title'
-                        },
-                        {
-                            type: 'input',
-                            message: 'Enter the salary of this role:',
-                            name: 'salary'
-                        },
-                        {
-                            type: 'list',
-                            message: 'Select what department this role belongs to:',
-                            name: 'department',
-                            choices: departmentArray
-                        }
-                    ])
-                    .then((answer) => {
-                        return addRole(answer.title, answer.salary, answer.department);
-                    });
+            db.promise().query('SELECT * FROM department')
+            .then((rows, fields) => {
+                return rows[0].map((dept) => ({
+                    name: `${dept.name}`,
+                    value: `${dept.id}`
+                }));
             })
+            .then((departmentList)=> {
+                inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        message: 'Enter the role you would like to add:',
+                        name: 'title'
+                    },
+                    {
+                        type: 'input',
+                        message: 'Enter the salary of this role:',
+                        name: 'salary'
+                    },
+                    {
+                        type: 'list',
+                        message: 'Select what department this role belongs to:',
+                        name: 'department',
+                        choices: departmentList
+                    }
+                ])
+                .then((answer) => {
+                    return addRole(answer.title, answer.salary, answer.department);
+                });
+            });
+            break;
         case 'Add an employee':
-            // first_name, last_name, role, manager
             let managerArray;
             let roleArray;
             db.promise().query('SELECT CONCAT(first_name, \' \', last_name) AS name FROM employee')
             .then((rows, fields) => {
                 managerArray = rows[0];
-                // console.log(managerArray);
                 db.promise().query('SELECT title AS name FROM role')
                 .then((rows, fields) => {
                     roleArray = rows[0];

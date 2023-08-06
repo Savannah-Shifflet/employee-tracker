@@ -16,7 +16,8 @@ const mainMenu = () => {
                     'Add a department', 
                     'Add a role', 
                     'Add an employee', 
-                    'Update an employee role'
+                    'Update an employee role',
+                    'View department\'s utilized budget'
                 ]
             }
         ])
@@ -94,6 +95,17 @@ const updateRole = (employee, newRole) => {
     });
 };
 
+const viewBudget = () => {
+    db.query('SELECT department.name AS Department, CONCAT(\'$\', FORMAT(SUM(role.salary), \'C\', \'en-us\')) AS Utilized_Budget FROM employee JOIN role ON role.id = employee.role_id JOIN department ON department.id = role.department_id GROUP BY department.name', (err, results) => { 
+        if(err) {
+            console.log(err);
+        } else {
+            console.table(results);
+            return mainMenu();
+        };
+    });
+};
+
 const choice = (str) => {
     let managerList;
     let roleList;
@@ -116,6 +128,7 @@ const choice = (str) => {
                 .then((answer) => {
                     return addDepartment(answer.departmentName);
                 });
+            break;
         case 'Add a role': 
             db.promise().query('SELECT * FROM department')
             .then((rows, fields) => {
@@ -234,6 +247,8 @@ const choice = (str) => {
                         });
                     });
             });
+        case 'View department\'s utilized budget':
+            return viewBudget();
     }
 };
 

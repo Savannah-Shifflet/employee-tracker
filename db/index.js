@@ -24,16 +24,7 @@ const mainMenu = () => {
             choice(answer.userAnswer); 
         })
 };
-// const roleList = async () => {
-//     db.query('SELECT title FROM role', (err, results) => {
-//         if(err){
-//             console.log(err);
-//         } else {
-//             console.log(results);
-//             return results;
-//         }
-//     })
-// };
+
 // WHEN I choose to view all departments
 // THEN I am presented with a formatted table showing department names and department ids
 const viewAllDepartments = () => {
@@ -117,13 +108,31 @@ const addEmployee = (first_name, last_name, role, manager) => {
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 const updateRole = (employeeName, newRole) => {
-    db.query('UPDATE employee SET role_id = ? WHERE id = ?', [newRole, employeeName], (err, results) => { 
-        if(err) {
-            console.log(err);
-        } else {
-            console.log(`Role was successfully updated!`);
-        };
+    let employeeId = 0;
+    let roleId = 0; 
+    let employeeNameArray = employeeName.split(' '); 
+    db.promise().query({sql: 'SELECT id FROM employee WHERE first_name = ? AND last_name = ?', rowsAsArray: true}, [employeeNameArray[0], employeeNameArray[1]])
+    .then((rows, fields) => {
+        employeeId = rows[0];
+    })
+    .then(() => {
+        db.promise().query({sql: 'SELECT id FROM role WHERE title = ?', rowsAsArray: true}, newRole)
+        .then(([rows, field]) => {
+            roleId = rows[0];
+        }) 
+        .then(() => {
+            db.query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, employeeId], (err, results) => { 
+                if(err) {
+                    console.log(err);
+                } else {
+                    console.log(`Role was successfully updated!`);
+                    return mainMenu();
+                };
+            });
+        });
+        
     });
+
 };
 
 const choice = (str) => {
@@ -219,9 +228,37 @@ const choice = (str) => {
                 });
             }); 
         case 'Update an employee role':
+            let nameArray;
+            let roleTitleArray;
+            db.promise().query('SELECT CONCAT(first_name, \' \', last_name) AS name FROM employee')
+            .then((rows, fields) => {
+                nameArray = rows[0];
+                db.promise().query('SELECT title AS name FROM role')
+                .then((rows, fields) => {
+                    roleTitleArray = rows[0];
+                })
+                .then(() => {
+                    inquirer
+                        .prompt([
+                            {
+                                type: 'list',
+                                message: 'What employee do you want to update?',
+                                name: 'employee',
+                                choices: nameArray
+                            },
+                            {
+                                type: 'list',
+                                message: 'Choose the new role for the employee:',
+                                name: 'roleTitle',
+                                choices: roleTitleArray
+                            },
+                        ])
+                        .then((answer) => {
+                            return updateRole(answer.employee, answer.roleTitle);
+                        });
+                });
+            }); 
     }
 };
-
-mainMenu();
 
 module.exports = { viewAllDepartments, viewAllRoles, viewAllEmployees, addDepartment, addRole, addEmployee, updateRole, mainMenu, choice };

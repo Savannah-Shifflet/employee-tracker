@@ -45,7 +45,9 @@ After installing this application, the functionality can be run by opening the i
 
     node index.js
 
-The application will prompt the user with a list of actions to choose from. A video tutorial can be found [here]() and below.
+The application will prompt the user with a list of actions to choose from. A video tutorial can be found [here](https://drive.google.com/file/d/1Hyjs2_037S-rsWvdztjTAX5nOJCNi2RI/view) and below.
+
+[video_tutorial.webm](https://github.com/Savannah-Shifflet/employee-tracker/assets/106942356/7367857f-49d7-4e32-9c71-e0849c53cc4a)
 
 ## License
 

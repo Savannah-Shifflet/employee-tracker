@@ -247,6 +247,7 @@ const choice = (str) => {
                         });
                     });
             });
+            break;
         case 'View department\'s utilized budget':
             return viewBudget();
     }
